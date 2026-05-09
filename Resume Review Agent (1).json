@@ -1,0 +1,162 @@
+{
+  "name": "Resume Review Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Resume Review Agent",
+        "formDescription": "Upload your resume PDF to get an ATS score, skill analysis, and AI feedback.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Resume",
+              "fieldType": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "10609a46-4225-47b9-b6fb-b5a349ccbe8b",
+      "name": "On form submission",
+      "webhookId": "c254dd7f-2bf1-4de1-953c-a96587995771"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "Resume",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "62a27fe5-38a1-4b52-b433-ef19e53087ee",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        288,
+        208
+      ],
+      "id": "b210964e-217f-4912-89ab-a1ff62032fca",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "9Y8AhPR2Pg6x8w5N",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "rammohansai12@gmail.com",
+        "subject": "Applicant Tracking System",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        768,
+        16
+      ],
+      "id": "5fa66daf-7efb-4b9b-a5ee-4763fcecec64",
+      "name": "Send a message",
+      "webhookId": "3a2a5fd4-e7a2-47c3-a34f-dceaf939069f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "PmEDEF2il5vQ0PN2",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional ATS Resume Checker AI.\n\nAnalyze the uploaded resume carefully.\ninput:{{ $json.text }}\nProvide:\n1. ATS Score out of 100\n2. Resume strengths\n3. Missing technical skills\n4. Grammar improvements\n5. Weak sections in resume\n6. Suggested improvements\n7. Best matching IT roles\n8. Interview preparation tips\n\nKeep the response professional and structured.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "88eca089-591a-42cd-9359-710d1c45369f",
+      "name": "ATS Resume Checker"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "ATS Resume Checker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "ATS Resume Checker",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ATS Resume Checker": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6eb133ce-9407-49ec-9280-c39173f8c088",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c6f4f2bf735563c1c484c3e2986e3f088a123e1562b5fe80b9cf4b15d6937962"
+  },
+  "id": "T9pQtM0dn719sKjt",
+  "tags": []
+}
